@@ -6,7 +6,7 @@ Interface responsive noir et blanc reprise de CAP : journal des décisions, hist
 - Frontend statique sans dépendance, dossier `public`, hébergement Vercel.
 - Supabase Auth et API REST ; données séparées par utilisateur avec RLS.
 - La configuration publique se trouve dans `public/config.js`. Aucune clé secrète dans le dépôt.
-- Migrations SQL : `supabase/001_records.sql` à `005_analysis_budget.sql`.
+- Migrations SQL : `supabase/001_records.sql` à `005_analysis_budget.sql`, puis `20261109122008_analysis_budget_status.sql`.
 - Les données de référence de l’ancienne interface restent privées et ne sont pas incluses dans ce dépôt.
 
 ## Aperçu
@@ -29,3 +29,5 @@ Activation : configurer `OPENAI_API_KEY` dans les secrets Edge Functions Supabas
 Tests Node : `node tests/domain.mjs`, `node tests/session-race.mjs`, `node tests/automatic-analysis.mjs`.
 
 Budget utilisateur : 10 EUR/mois maximum. Garde-fou interne conservateur : 6 USD/mois, réserve transactionnelle de 1,50 USD avant chaque appel, sans remboursement de réserve en cas de timeout. Après réponse, estimation aux tarifs standard du 09/11/2026 (0,75 USD/M entrée, 4,50 USD/M sortie, trois recherches à 0,01 USD), majorée de 20 %. Plafond sorties 6000 tokens et 3 outils. Ce suivi ne remplace pas la facture fournisseur : confirmer tarifs, conversion et paramètres du compte avant activation. Utiliser une clé dédiée, sans recharge automatique. Aucun basculement automatique vers un modèle plus cher.
+
+Le panneau des analyses affiche le budget du mois, les réserves incluses et la date de renouvellement. Une panne de ce panneau ne bloque pas le journal. Le RPC de statut ne retourne que la configuration du compte connecté, sans secret.
