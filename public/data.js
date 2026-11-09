@@ -8,6 +8,7 @@ export function validate(kind,data){
  if(!['reference','event','settings'].includes(kind)&&!validDate(data.date))throw Error('Date invalide.');
  if(data.date&&!validDate(data.date))throw Error('Date invalide.');
  for(const key of ['value','quantity','price','fees'])if(key in data&&(!Number.isFinite(data[key])||data[key]<0))throw Error('Montant invalide.');
+ if(data.scope!==undefined&&!['Total titres et liquidités','Titres seuls'].includes(data.scope))throw Error('Périmètre invalide.');
  if(kind==='valuation'&&(!Number.isFinite(data.value)||data.value>1e9))throw Error('Valorisation invalide.');
  if(kind==='trade'&&(!(data.quantity>0)||!(data.price>0)||!['Achat','Vente'].includes(data.side)))throw Error('Transaction invalide.');
  const required={decision:['asset','reason','risk'],trade:['asset','currency'],note:['title','body'],event:['title'],settings:['body']}[kind]||[];
