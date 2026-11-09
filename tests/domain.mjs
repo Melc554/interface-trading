@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {validate,parseBackup,latestValuations,risk} from '../public/data.js';
+assert.equal(risk(100,2,10,20).loss,20);
+assert.equal(risk(100,2,10,20).ratio,2);
+assert.throws(()=>risk(100,2,100,20));
+assert.throws(()=>validate('valuation',{date:'2026-02-30',value:12}));
+assert.throws(()=>validate('valuation',{date:'2026-11-09',value:-1}));
+assert.equal(latestValuations([{kind:'valuation',created_at:'2026-11-09T09:00:00Z',data:{date:'2026-11-09',value:1}},{kind:'valuation',created_at:'2026-11-09T10:00:00Z',data:{date:'2026-11-09',value:2}}])[0].data.value,2);
+assert.equal(parseBackup({version:1,settings:{budget:1000},trades:[{date:'2026-11-09',asset:'Example',side:'Achat',currency:'EUR',quantity:'2',price:'10',fees:'1'}]})[0].data.quantity,2);
+assert.throws(()=>validate('decision',{date:'2026-11-09',asset:'a',reason:'r',risk:'r',action:'Attendre',status:'À étudier',history:{}}));
+console.log('PASS: 8 domain checks');
