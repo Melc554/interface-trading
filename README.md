@@ -6,17 +6,24 @@ Interface responsive noir et blanc reprise de CAP : journal des décisions, hist
 - Frontend statique sans dépendance, dossier `public`, hébergement Vercel.
 - Supabase Auth et API REST ; données séparées par utilisateur avec RLS.
 - La configuration publique se trouve dans `public/config.js`. Aucune clé secrète dans le dépôt.
-- Migration SQL : `supabase/001_records.sql`.
+- Migrations SQL : `supabase/001_records.sql` à `004_analysis_schedule.sql`.
 - Les données de référence de l’ancienne interface restent privées et ne sont pas incluses dans ce dépôt.
 
 ## Aperçu
 `python3 -m http.server 8787 --directory public`
 
 ## Limites actuelles
-- Les valeurs et décisions sont renseignées manuellement ; aucun flux de cours ni import automatique des analyses ChatGPT.
+- Les valeurs et décisions sont renseignées manuellement ; aucun flux de cours. Les tâches ChatGPT précédentes ne sont pas copiées.
 - Courbe de valeur, pas rendement : les apports/retraits sont inclus dans la variation.
 - Aucun ordre courtier, seuil non surveillé.
 - Synchronisation à la connexion, après saisie et via Actualiser.
 - Démonstration isolée en mémoire, réinitialisée au rechargement.
 
 Documentation : [Vercel](https://vercel.com/docs/project-configuration/vercel-json), [Supabase Auth](https://supabase.com/docs/guides/auth), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
+
+## Analyses automatiques
+Fonction Supabase `cap-daily-analysis`, déclenchée par pg_cron/pg_net, protégée par un secret aléatoire en Vault (seul son SHA-256 est dans la configuration). Elle utilise OpenAI Responses avec recherche web. Horaire Europe/Paris : lundi–vendredi 8 h et 15 h, changement d’heure géré. Une tentative maximum par créneau, sans relance coûteuse automatique. Une réponse incomplète ou sans sources reconnues ne crée pas de décision. Résultats et statut de fin sont écrits dans une transaction.
+
+Activation : configurer `OPENAI_API_KEY` dans les secrets Edge Functions Supabase, définir le budget avec le propriétaire, tester réellement l’accès/modèle et une exécution, puis activer la ligne propriétaire de `cap_automation`. Ne pas publier de clé API. La configuration reste désactivée par défaut. Le modèle est configurable dans la base, actuellement `gpt-6-astra`. Les appels sont limités à 6 000 tokens de sortie et 100 secondes, sans garantie de coût monétaire ; appliquer les limites du compte fournisseur. Une interruption avant l’enregistrement final apparaît comme exécution interrompue après 3 minutes dans l’interface.
+
+Tests Node : `node tests/domain.mjs`, `node tests/session-race.mjs`, `node tests/automatic-analysis.mjs`.

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {parisSlot,extractDecisions,schema} from '../supabase/functions/cap-daily-analysis/core.js';
+assert.equal(parisSlot(new Date('2026-11-09T07:00:00Z')).slot,'08:00');
+assert.equal(parisSlot(new Date('2026-07-06T06:00:00Z')).slot,'08:00');
+assert.equal(parisSlot(new Date('2026-11-09T14:00:00Z')).slot,'15:00');
+assert.equal(parisSlot(new Date('2026-11-08T07:00:00Z')).slot,null);
+assert.equal(parisSlot(new Date('2026-11-09T06:00:00Z')).slot,null);
+const decision={asset:'Exemple',action:'Attendre',reason:'Information à vérifier',risk:'Manque de données',sources:[{title:'Source',url:'https://example.com/report'}]};
+const response={status:'completed',output:[{type:'web_search_call',action:{sources:[{url:'https://example.com/report'}]}},{type:'message',content:[{type:'output_text',text:JSON.stringify({decisions:[decision]})}]}]};
+assert.equal(extractDecisions(response,'2026-11-09')[0].status,'À étudier');
+assert.throws(()=>extractDecisions({...response,status:'incomplete'},'2026-11-09'));
+assert.throws(()=>extractDecisions({...response,output:response.output.slice(1)},'2026-11-09'));
+assert.throws(()=>extractDecisions({...response,output:[{type:'web_search_call',action:{sources:[]}},response.output[1]]},'2026-11-09'));
+assert.equal(schema.properties.decisions.maxItems,6);
+console.log('PASS: 10 automation checks (DST, weekdays, partial and unsourced outputs)');
